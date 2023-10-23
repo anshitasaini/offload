@@ -37,7 +37,7 @@ const PromptForm = () => {
               <Button
                 type="submit"
                 size="icon"
-                disabled={false || input === ""}>
+                disabled={input === ""}>
                 <PaperPlaneIcon />
                 <span className="sr-only">Send message</span>
               </Button>

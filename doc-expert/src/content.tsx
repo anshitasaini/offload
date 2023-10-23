@@ -1,4 +1,5 @@
 import Chat from "@/components/chat"
+import CommandModal from "@/components/command-modal"
 import {
   Command,
   CommandDialog,
@@ -30,6 +31,7 @@ import {
 } from "@radix-ui/react-icons"
 import cssText from "data-text:~style.css"
 import type { PlasmoCSConfig } from "plasmo"
+import React from "react"
 
 import { CountButton } from "~features/count-button"
 
@@ -46,8 +48,24 @@ export const getStyle = () => {
 }
 
 const PlasmoOverlay = () => {
+  const [showDialog, setShowDialog] = React.useState(false)
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey && event.key === "j") {
+        setShowDialog((showDialog) => !showDialog)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [])
+
+  return <CommandModal open={showDialog} onOpenChange={setShowDialog} />
   return (
-    <Dialog open={true}>
+    <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>AI Assistant</DialogTitle>
@@ -55,25 +73,6 @@ const PlasmoOverlay = () => {
         <Chat />
       </DialogContent>
     </Dialog>
-  )
-  return (
-    <CommandDialog open={true}>
-      <CommandInput placeholder="Type a command or search..." />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Documentation">
-          <CommandItem>
-            <MagicWandIcon className="mr-2 h-3 w-3" />
-            <span>Ask Anshita AI...</span>
-          </CommandItem>
-          <CommandItem>
-            <MagnifyingGlassIcon className="mr-2 h-3 w-3" />
-            <span>Search the Documentation</span>
-          </CommandItem>
-        </CommandGroup>
-        <CommandSeparator />
-      </CommandList>
-    </CommandDialog>
   )
 }
 
