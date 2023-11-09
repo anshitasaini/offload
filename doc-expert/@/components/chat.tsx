@@ -1,21 +1,25 @@
+import { useState } from "react"
+
+import type { ChatMessageSchema } from "~api/openapi/schemas"
+
 import ChatMessage from "./chat-message"
 import PromptForm from "./prompt-form"
-import { Separator } from "./ui/separator"
 
 const Chat = () => {
-  const messages = [
-    "How can I help you?",
-    "How do I install this library?",
-    "I don't understand this part of the doc"
-  ]
+  const [messages, setMessages] = useState<ChatMessageSchema[]>([
+    {
+      message: "Hello, I'm Bot!",
+      sender: "bot"
+    }
+  ])
   return (
-    <div>
-      {messages.map((message, index) => (
+    <div className="max-h-screen overflow-y-auto">
+      {messages.map((chatMessage, index) => (
         <div key={index}>
-          <ChatMessage message={message} />
+          <ChatMessage {...chatMessage} />
         </div>
       ))}
-      <PromptForm />
+      <PromptForm messages={messages} setMessages={setMessages} />
     </div>
   )
 }

@@ -2,14 +2,12 @@ import { cn } from "@/lib/utils"
 import { PersonIcon } from "@radix-ui/react-icons"
 import remarkGfm from "remark-gfm"
 
+import type { ChatMessageSchema } from "~api/openapi/schemas"
+
 import { MemoizedReactMarkdown } from "./markdown"
 import { Separator } from "./ui/separator"
 
-export interface ChatMessageProps {
-  message: string
-}
-
-const ChatMessage = ({ message }) => {
+const ChatMessage = ({ message, sender }: ChatMessageSchema) => {
   return (
     <div className={cn("group relative mb-2 flex items-start")}>
       <div

@@ -2,6 +2,9 @@ import { PaperPlaneIcon } from "@radix-ui/react-icons"
 import React from "react"
 import Textarea from "react-textarea-autosize"
 
+import { chatSendMessage } from "~api/openapi/chat/chat"
+import type { ChatMessageSchema } from "~api/openapi/schemas"
+
 import { Button } from "./ui/button"
 import {
   Tooltip,
@@ -10,12 +13,43 @@ import {
   TooltipTrigger
 } from "./ui/tooltip"
 
-const PromptForm = () => {
-  // const { formRef, onKeyDown } = useEnterSubmit()
-  const onKeyDown = () => {}
+export interface PromptFormProps {
+  messages: ChatMessageSchema[]
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessageSchema[]>>
+}
+
+const PromptForm = ({ messages, setMessages }: PromptFormProps) => {
+  const [input, setInput] = React.useState("")
+
+  const appendMessage = (message: ChatMessageSchema) => {
+    setMessages((messages) => [...messages, message])
+  }
+
+  const sendMessage = async () => {
+    setInput("")
+    appendMessage({
+      message: input,
+      sender: "user"
+    })
+    const response = await chatSendMessage({
+      current_url: window.location.href,
+      history: [],
+      query: input
+    })
+    appendMessage({
+      message: response.answer,
+      sender: "bot"
+    })
+  }
+
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault()
+      sendMessage()
+    }
+  }
 
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const [input, setInput] = React.useState("")
 
   return (
     <TooltipProvider>
@@ -34,10 +68,7 @@ const PromptForm = () => {
         <div className="absolute right-0 top-1 sm:right-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                type="submit"
-                size="icon"
-                disabled={input === ""}>
+              <Button type="submit" size="icon" disabled={input === ""}>
                 <PaperPlaneIcon />
                 <span className="sr-only">Send message</span>
               </Button>

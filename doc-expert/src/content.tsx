@@ -38,7 +38,7 @@ import { CountButton } from "~features/count-button"
 import "~style.css"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://docs.convex.dev/*", "https://news.ycombinator.com/*"]
+  matches: ["https://docs.convex.dev/*", "https://echo.labstack.com/docs/*"]
 }
 
 export const getStyle = () => {
@@ -53,6 +53,7 @@ const PlasmoOverlay = () => {
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey && event.key === "j") {
+        console.log("OK")
         setShowDialog((showDialog) => !showDialog)
       }
     }
@@ -63,10 +64,10 @@ const PlasmoOverlay = () => {
     }
   }, [])
 
-  return <CommandModal open={showDialog} onOpenChange={setShowDialog} />
+  //   return <CommandModal open={showDialog} onOpenChange={setShowDialog} />
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>AI Assistant</DialogTitle>
         </DialogHeader>
