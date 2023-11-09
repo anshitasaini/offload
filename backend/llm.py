@@ -59,13 +59,13 @@ class DocsUploadSource(AbstractUploadSource):
         docs_data = [[], []]
         for item in scraped_items:
             docs_data[0].append(item.content)
-            docs_data[1].append({"page_title": item.title})
+            docs_data[1].append({"page_title": item.title, "page_url": item.url})
         return docs_data
         
     def create_documents(self) -> list[Document]:
         docs_data = self.fetch_contents(self.base_url)
-        # for i in self.repo_data[1]:
-        #     print(i)
+        for i in docs_data[0]:
+            print(i[:10])
         return self.text_splitter.create_documents(texts=docs_data[0], metadatas=docs_data[1])
 
 
