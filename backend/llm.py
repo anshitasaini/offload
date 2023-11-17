@@ -1,18 +1,13 @@
 from abc import ABC, abstractmethod
-from uuid import uuid4
-from fastapi import UploadFile
 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
-from PyPDF2 import PdfReader
 from langchain.schema import Document
 from crawler_driver import CrawlerDriver
 
-import requests
-import os
 
 class AbstractUploadSource(ABC):
     def __init__(self) -> None:
@@ -33,6 +28,9 @@ class AbstractUploadSource(ABC):
             raise ValueError("Source ID is None")
         split_documents = self.create_documents()
 
+        print("Uploading documents to Pinecone...")
+        print(f"Uploading {len(split_documents)} documents")
+        print(f"Source ID: {self.source_id}")
         Pinecone.from_documents(
             documents=split_documents,
             embedding=self.embeddings,
@@ -47,11 +45,10 @@ class AbstractUploadSource(ABC):
 
 
 class DocsUploadSource(AbstractUploadSource):
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, source_id: str) -> None:
         super().__init__()
         self.base_url = url
-        self.source_id = f"docs-{uuid4()}"
-        print(self.source_id)
+        self.source_id = source_id
 
     def fetch_contents(self, base_url):
         crawler = CrawlerDriver(base_url)
@@ -61,12 +58,12 @@ class DocsUploadSource(AbstractUploadSource):
             docs_data[0].append(item.content)
             docs_data[1].append({"page_title": item.title, "page_url": item.url})
         return docs_data
-        
+
     def create_documents(self) -> list[Document]:
         docs_data = self.fetch_contents(self.base_url)
-        for i in docs_data[0]:
-            print(i[:10])
-        return self.text_splitter.create_documents(texts=docs_data[0], metadatas=docs_data[1])
+        return self.text_splitter.create_documents(
+            texts=docs_data[0], metadatas=docs_data[1]
+        )
 
 
 class ChatQuery:
@@ -93,5 +90,9 @@ class ChatQuery:
             }
         )
 
-        source_doc = Document(page_content="",metadata={}) if len(result["source_documents"]) == 0 else result["source_documents"][0]
+        source_doc = (
+            Document(page_content="", metadata={})
+            if len(result["source_documents"]) == 0
+            else result["source_documents"][0]
+        )
         return result["answer"], source_doc
