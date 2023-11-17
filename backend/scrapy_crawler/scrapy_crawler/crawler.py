@@ -6,7 +6,7 @@ class Crawler:
         self.process = CrawlerProcess()
         self.scraped_items = []
 
-    def process_item(self, item): 
+    def process_item(self, item):
         self.scraped_items.append(item)
         return item
 
