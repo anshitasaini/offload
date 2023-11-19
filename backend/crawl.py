@@ -2,7 +2,8 @@ import json
 from urllib.parse import urlparse
 from pydantic import BaseModel
 from llm import DocsUploadSource
-
+import os
+import pinecone
 
 class DocToCrawl(BaseModel):
     name: str
@@ -28,7 +29,7 @@ def read_json_docs() -> list[DocToCrawl]:
 def do_it():
     docs_to_crawl = read_json_docs()
     # temporary filter
-    docs_to_crawl = [doc for doc in docs_to_crawl if doc.name == "Convex"]
+    docs_to_crawl = [doc for doc in docs_to_crawl if doc.name not in ["React", "Convex", "CodeMirror"]]
 
     upload_sources = [
         DocsUploadSource(doc.crawlerStart, doc.source_id) for doc in docs_to_crawl
@@ -39,4 +40,7 @@ def do_it():
 
 
 if __name__ == "__main__":
+    pinecone.init(
+    api_key=os.getenv("PINECONE_API_KEY"), environment=os.getenv("PINECONE_ENV")
+    )
     do_it()
