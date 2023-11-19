@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
@@ -6,11 +7,13 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
 from langchain.schema import Document
+import openai
 from crawler_driver import CrawlerDriver
 
 
 class AbstractUploadSource(ABC):
     def __init__(self) -> None:
+        openai.util.logger.setLevel(logging.WARNING)
         self.embeddings = OpenAIEmbeddings(
             client=None,
             model="text-embedding-ada-002",
@@ -36,6 +39,7 @@ class AbstractUploadSource(ABC):
             embedding=self.embeddings,
             index_name="langchain-index",
             namespace=self.source_id,
+            environment="us-west1-gcp-free",
         )
         return self.source_id
 

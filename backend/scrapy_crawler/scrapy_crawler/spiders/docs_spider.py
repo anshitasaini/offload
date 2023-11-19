@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -23,6 +24,7 @@ class DocsSpider(CrawlSpider):
 
     def __init__(self, base_url, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        logging.getLogger('scrapy').setLevel(logging.WARNING)
         parsed_uri = urlparse(base_url)
 
         self.allowed_domains = [parsed_uri.netloc]
