@@ -1,44 +1,20 @@
 import Chat from "@/components/chat"
-import CommandModal from "@/components/command-modal"
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut
-} from "@/components/ui/command"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import {
-  CalendarIcon,
-  EnvelopeClosedIcon,
-  FaceIcon,
-  GearIcon,
-  MagicWandIcon,
-  MagnifyingGlassIcon,
-  PersonIcon,
-  RocketIcon
-} from "@radix-ui/react-icons"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { MagicWandIcon } from "@radix-ui/react-icons"
 import cssText from "data-text:~style.css"
 import type { PlasmoCSConfig } from "plasmo"
-import React from "react"
-
-import { CountButton } from "~features/count-button"
+import React, { useEffect } from "react"
 
 import "~style.css"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://docs.convex.dev/*", "https://echo.labstack.com/docs/*"]
+  matches: [
+    "https://docs.convex.dev/*",
+    "https://echo.labstack.com/docs/*",
+    "https://tailwindcss.com/docs/*",
+    "https://docs.airbyte.com/*"
+  ]
 }
 
 export const getStyle = () => {
@@ -48,32 +24,23 @@ export const getStyle = () => {
 }
 
 const PlasmoOverlay = () => {
-  const [showDialog, setShowDialog] = React.useState(false)
+  const [showDialog, setShowDialog] = React.useState(true)
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey && event.key === "j") {
-        console.log("OK")
-        setShowDialog((showDialog) => !showDialog)
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown)
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [])
-
-  //   return <CommandModal open={showDialog} onOpenChange={setShowDialog} />
   return (
-    <Dialog open={showDialog} onOpenChange={setShowDialog}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>AI Assistant</DialogTitle>
-        </DialogHeader>
-        <Chat />
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-[52rem]">
+          <Chat />
+        </DialogContent>
+      </Dialog>
+      <Button
+        size="lg"
+        className="text-md fixed bottom-7 right-7 px-5 py-6 rounded-full"
+        onClick={() => setShowDialog(true)}>
+        Ask AI
+        <MagicWandIcon className="ml-2 w-4 h-4" />
+      </Button>
+    </>
   )
 }
 

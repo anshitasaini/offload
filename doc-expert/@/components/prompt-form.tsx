@@ -14,38 +14,17 @@ import {
 } from "./ui/tooltip"
 
 export interface PromptFormProps {
-  messages: ChatMessageSchema[]
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessageSchema[]>>
+  sendMessage: (message: string) => void
 }
 
-const PromptForm = ({ messages, setMessages }: PromptFormProps) => {
+const PromptForm = ({ sendMessage }: PromptFormProps) => {
   const [input, setInput] = React.useState("")
-
-  const appendMessage = (message: ChatMessageSchema) => {
-    setMessages((messages) => [...messages, message])
-  }
-
-  const sendMessage = async () => {
-    setInput("")
-    appendMessage({
-      message: input,
-      sender: "user"
-    })
-    const response = await chatSendMessage({
-      current_url: window.location.href,
-      history: [],
-      query: input
-    })
-    appendMessage({
-      message: response.answer,
-      sender: "bot"
-    })
-  }
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
-      sendMessage()
+      setInput("")
+      sendMessage(input)
     }
   }
 
@@ -53,7 +32,7 @@ const PromptForm = ({ messages, setMessages }: PromptFormProps) => {
 
   return (
     <TooltipProvider>
-      <div className="relative flex w-full grow flex-col overflow-hidden bg-background px-2 sm:rounded-md sm:border">
+      <div className="relative flex w-full grow overflow-hidden bg-background px-4 py-1 sm:rounded-md sm:border items-center">
         <Textarea
           ref={inputRef}
           tabIndex={0}
@@ -61,14 +40,18 @@ const PromptForm = ({ messages, setMessages }: PromptFormProps) => {
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Send a message."
+          placeholder="How do I get started?"
           spellCheck={false}
           className="min-h-[30px] w-full resize-none bg-transparent px-1 py-[0.8rem] focus-within:outline-none sm:text-sm"
         />
-        <div className="absolute right-0 top-1 sm:right-2">
+        <div className="">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="submit" size="icon" disabled={input === ""}>
+              <Button
+                type="submit"
+                size="icon"
+                variant="ghost"
+                disabled={input === ""}>
                 <PaperPlaneIcon />
                 <span className="sr-only">Send message</span>
               </Button>
