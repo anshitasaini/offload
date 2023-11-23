@@ -24,7 +24,7 @@ export const getStyle = () => {
 }
 
 const PlasmoOverlay = () => {
-  const [showDialog, setShowDialog] = React.useState(true)
+  const [showDialog, setShowDialog] = React.useState(false)
 
   return (
     <>
@@ -35,10 +35,15 @@ const PlasmoOverlay = () => {
       </Dialog>
       <Button
         size="lg"
+        variant="outline"
         className="text-md fixed bottom-7 right-7 px-5 py-6 rounded-full"
         onClick={() => setShowDialog(true)}>
         Ask AI
-        <MagicWandIcon className="ml-2 w-4 h-4" />
+        <img
+          src="https://cf.appdrag.com/dashboard-openvm-clo-b2d42c/uploads/airbyte-1613152137-dKaX.png"
+          alt="Airbyte Logo"
+          className="w-7 h-7 ml-2"
+        />
       </Button>
     </>
   )
