@@ -1,11 +1,14 @@
+import asyncio
 from llm import ChatQuery
 from urllib.parse import urlparse
 import openai
 import os
 import pinecone
 import requests
-from typing import Union
+from typing import AsyncIterable, Union
 from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import StreamingResponse
+from langchain.callbacks import AsyncIteratorCallbackHandler
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,41 +76,28 @@ class ChatResponse(BaseModel):
     source_metadata: dict
 
 
-from crawl import DocToCrawl
-import json
-
 from crawl import read_json_docs
 
 docs_to_crawl = read_json_docs()
 url_to_doc = {doc.netloc: doc for doc in docs_to_crawl}
-
-
-@app.post("/chat/", tags=["chat"], response_model=ChatResponse)
-def send_message(chat_in: ChatInSchema):
+    
+@app.post("/chat/", tags=["chat"])
+async def send_message(chat_in: ChatInSchema):
     current_netloc = urlparse(chat_in.current_url).netloc
     try:
         doc = url_to_doc[current_netloc]
     except KeyError:
-        return ChatResponse(
-            answer="Sorry, I don't know anything about this document.",
-            source_content="",
-            source_metadata={},
-        )
+        return StreamingResponse(None, media_type="text/event-stream")
 
-    print(doc)
-    source_id = doc.source_id
     history = chat_in.history
-    query_obj = ChatQuery(source_id)
     chat_history = [
         (history[i].message, history[i + 1].message)
         for i in range(1, len(history) - 1, 2)
     ]
-    answer, source = query_obj.ask(chat_in.query, chat_history)
-    return ChatResponse(
-        answer=answer,
-        source_content=source.page_content,
-        source_metadata=source.metadata,
-    )
+    
+    query_obj = ChatQuery(doc.source_id)
+    generator = query_obj.ask(chat_in.query, chat_history)
+    return StreamingResponse(generator, media_type="text/event-stream")
 
 
 class GetSourceRequest(BaseModel):
