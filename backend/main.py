@@ -81,13 +81,45 @@ from crawl import read_json_docs
 docs_to_crawl = read_json_docs()
 url_to_doc = {doc.netloc: doc for doc in docs_to_crawl}
     
-@app.post("/chat/", tags=["chat"])
-async def send_message(chat_in: ChatInSchema):
+@app.post("/chat/", tags=["chat"], response_model=ChatResponse)
+def send_message(chat_in: ChatInSchema):
     current_netloc = urlparse(chat_in.current_url).netloc
     try:
         doc = url_to_doc[current_netloc]
     except KeyError:
-        return StreamingResponse(None, media_type="text/event-stream")
+        return ChatResponse(
+            answer="Sorry, I don't know anything about this document.",
+            source_content="",
+            source_metadata={},
+        )
+
+    print(doc)
+    source_id = doc.source_id
+    history = chat_in.history
+    query_obj = ChatQuery(source_id)
+    chat_history = [
+        (history[i].message, history[i + 1].message)
+        for i in range(1, len(history) - 1, 2)
+    ]
+    answer, source = query_obj.ask(chat_in.query, chat_history)
+    return ChatResponse(
+        answer=answer,
+        source_content=source.page_content,
+        source_metadata=source.metadata,
+    )
+
+
+@app.post("/chat-stream/", tags=["chat"], response_model=None)
+async def send_message_stream(chat_in: ChatInSchema):
+    print(chat_in.query)
+    
+    current_netloc = urlparse(chat_in.current_url).netloc
+    try:
+        doc = url_to_doc[current_netloc]
+    except KeyError:
+        def empty_generator():
+            yield
+        return StreamingResponse(empty_generator(), media_type="text/event-stream")
 
     history = chat_in.history
     chat_history = [
@@ -96,7 +128,7 @@ async def send_message(chat_in: ChatInSchema):
     ]
     
     query_obj = ChatQuery(doc.source_id)
-    generator = query_obj.ask(chat_in.query, chat_history)
+    generator = query_obj.ask_stream(chat_in.query, chat_history)
     return StreamingResponse(generator, media_type="text/event-stream")
 
 

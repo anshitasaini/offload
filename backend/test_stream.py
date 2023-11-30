@@ -2,11 +2,11 @@ import json
 from main import ChatInSchema
 import requests
 
-url = "http://127.0.0.1:8000/chat/"
+url = "http://127.0.0.1:8000/chat-stream/"
 
 data = {
-    "query": "how do i make a box?",
-    "current_url": "https://tailwindcss.com/blog/tailwindcss-v3",
+    "query": "What are the steps to set up a source in Airbyte Cloud?",
+    "current_url": "https://docs.airbyte.com/category/using-airbyte-cloud",
     "history": [
         {"message": "", "sender": ""},
     ],

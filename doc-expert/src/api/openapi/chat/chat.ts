@@ -84,3 +84,69 @@ export const useChatSendMessage = <
 
   return useMutation(mutationOptions)
 }
+/**
+ * @summary Send Message Stream
+ */
+export const chatSendMessageStream = (chatInSchema: ChatInSchema) => {
+  return customAxios<unknown>({
+    url: `/chat-stream/`,
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: chatInSchema
+  })
+}
+
+export const getChatSendMessageStreamMutationOptions = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof chatSendMessageStream>>,
+    TError,
+    { data: ChatInSchema },
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof chatSendMessageStream>>,
+  TError,
+  { data: ChatInSchema },
+  TContext
+> => {
+  const { mutation: mutationOptions } = options ?? {}
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof chatSendMessageStream>>,
+    { data: ChatInSchema }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return chatSendMessageStream(data)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChatSendMessageStreamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof chatSendMessageStream>>
+>
+export type ChatSendMessageStreamMutationBody = ChatInSchema
+export type ChatSendMessageStreamMutationError = ErrorType<HTTPValidationError>
+
+/**
+ * @summary Send Message Stream
+ */
+export const useChatSendMessageStream = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof chatSendMessageStream>>,
+    TError,
+    { data: ChatInSchema },
+    TContext
+  >
+}) => {
+  const mutationOptions = getChatSendMessageStreamMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}

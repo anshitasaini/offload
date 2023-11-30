@@ -97,7 +97,22 @@ class ChatQuery:
             return_source_documents=True,
         )    
 
-    async def ask(self, query: str, history: list):
+    def ask(self, query: str, history: list) -> str:
+        result = self.qa(
+            {
+                "question": query,
+                "chat_history": history,
+            }
+        )
+
+        source_doc = (
+            Document(page_content="", metadata={})
+            if len(result["source_documents"]) == 0
+            else result["source_documents"][0]
+        )
+        return result["answer"], source_doc
+
+    async def ask_stream(self, query: str, history: list):
         task = asyncio.create_task(
                 self.qa.acall(
                     {
@@ -109,7 +124,8 @@ class ChatQuery:
 
         try:
             async for token in self.callback.aiter():
-                yield token
+                yield "data: " + token + "\n\n"
+                # yield token
         except Exception as e:
             print(f"Caught exception: {e}")
         finally:
