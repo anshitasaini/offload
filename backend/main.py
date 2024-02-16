@@ -1,4 +1,5 @@
 import asyncio
+
 from llm import ChatQuery
 from urllib.parse import urlparse
 import openai
@@ -6,17 +7,30 @@ import os
 import pinecone
 import requests
 from typing import AsyncIterable, Union
-from fastapi import FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.responses import StreamingResponse
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from llm import ChatQuery
+
 from uuid import uuid4
 from fastapi.routing import APIRoute
+import models, schemas
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
+from ingest import crawl_and_store_sitemap
 
 load_dotenv()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def custom_generate_unique_id(route: APIRoute):
@@ -80,7 +94,8 @@ from crawl import read_json_docs
 
 docs_to_crawl = read_json_docs()
 url_to_doc = {doc.netloc: doc for doc in docs_to_crawl}
-    
+
+
 @app.post("/chat/", tags=["chat"], response_model=ChatResponse)
 def send_message(chat_in: ChatInSchema):
     current_netloc = urlparse(chat_in.current_url).netloc
@@ -102,23 +117,19 @@ def send_message(chat_in: ChatInSchema):
         for i in range(1, len(history) - 1, 2)
     ]
     answer, source = query_obj.ask(chat_in.query, chat_history)
-    return ChatResponse(
-        answer=answer,
-        source_content=source.page_content,
-        source_metadata=source.metadata,
-    )
+    return ChatResponse(answer=answer, source_content="", source_metadata={})
 
 
 @app.post("/chat-stream/", tags=["chat"], response_model=None)
 async def send_message_stream(chat_in: ChatInSchema):
-    print(chat_in.query)
-    
     current_netloc = urlparse(chat_in.current_url).netloc
     try:
         doc = url_to_doc[current_netloc]
     except KeyError:
+
         def empty_generator():
             yield
+
         return StreamingResponse(empty_generator(), media_type="text/event-stream")
 
     history = chat_in.history
@@ -126,7 +137,7 @@ async def send_message_stream(chat_in: ChatInSchema):
         (history[i].message, history[i + 1].message)
         for i in range(1, len(history) - 1, 2)
     ]
-    
+
     query_obj = ChatQuery(doc.source_id)
     generator = query_obj.ask_stream(chat_in.query, chat_history)
     return StreamingResponse(generator, media_type="text/event-stream")
@@ -151,3 +162,16 @@ def get_source(get_source_request: GetSourceRequest):
 @app.get("/", tags=["root"])
 async def main():
     return {"message": "Hello World"}
+
+
+@app.get("/files/", tags=["files"])
+def get_files(db: Session = Depends(get_db)):
+    files = db.query(models.File).all()
+    return files
+
+
+@app.post("/ingest-sitemap/", tags=["ingest"])
+async def ingest_sitemap(body: schemas.IngestSiteMapIn, db: Session = Depends(get_db)):
+
+    source = await crawl_and_store_sitemap(body.sitemapUrl, body.sourceName, db)
+    return source

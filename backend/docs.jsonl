@@ -375,3 +375,4 @@
 { "name": "Serp Google Scholar API", "crawlerStart": "https://serpapi.com/google-scholar-api", "crawlerPrefix": "https://serpapi.com/google-scholar-api" }
 { "name": "Novu", "crawlerStart": "https://docs.novu.co/", "crawlerPrefix": "https://docs.novu.co/" }
 {"name": "Convex", "crawlerStart": "https://docs.convex.dev/home", "crawlerPrefix": "https://docs.convex.dev/home"}
+{"name": "Airbyte", "crawlerStart": "https://docs.airbyte.com", "crawlerPrefix": "https://docs.airbyte.com"}
